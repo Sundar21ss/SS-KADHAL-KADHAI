@@ -1,0 +1,543 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#f8f6f0">
+<title>SS KADHAL KADHAI — Private Atelier</title>
+
+<script type="module">
+import { createClient } from
+'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
+const supabase = createClient(
+  'https://vhfbxqbhycdizvlludur.supabase.co',
+  'sb_publishable_HccwobnTGcKggQv7_J_EPg_pqPI7F4M'
+);
+window.db = supabase;
+window.dispatchEvent(new Event('supabase-ready'));
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+:root{
+ --bg:#f8f6f0;
+ --paper:#fffefa;
+ --ink:#25231f;
+ --muted:#918b7e;
+ --gold:#ad8b54;
+ --gold-light:#e9ddc6;
+ --line:#eae5db;
+ --dark:#292721;
+ --green:#63836b;
+ --red:#a45d53;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'DM Sans',sans-serif}
+button,input,textarea,select{font:inherit}
+button{cursor:pointer}
+.serif{font-family:'Cormorant Garamond',serif}
+#loginScreen{min-height:100vh;display:grid;place-items:center;padding:24px}
+.login-card{width:100%;max-width:440px;background:var(--paper);padding:48px;border:1px solid var(--line);text-align:center;box-shadow:0 20px 70px #3327140b}
+.brand-mark{width:52px;height:52px;border:1px solid var(--gold);border-radius:50%;display:grid;place-items:center;margin:0 auto 22px;color:var(--gold);font-family:Georgia;font-size:24px}
+.login-card h1{font-size:43px;font-weight:500;line-height:.95;margin:0}
+.eyebrow{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--gold)}
+.login-card p{font-size:13px;color:var(--muted);line-height:1.8}
+.field{width:100%;padding:14px 15px;border:1px solid var(--line);background:#fffefa;outline:none;margin:8px 0;color:var(--ink);border-radius:3px}
+.field:focus{border-color:var(--gold)}
+.btn{padding:13px 20px;border:1px solid var(--dark);background:var(--dark);color:white;font-size:11px;letter-spacing:1.4px;text-transform:uppercase;transition:.2s}
+.btn:hover{background:var(--gold);border-color:var(--gold)}
+.btn:disabled{opacity:.5;cursor:wait}
+.btn-outline{background:transparent;color:var(--ink);border-color:var(--line)}
+.btn-outline:hover{color:white}
+#app{display:none;min-height:100vh}
+.sidebar{width:255px;position:fixed;inset:0 auto 0 0;background:var(--dark);color:#f7f2e8;padding:32px 23px;display:flex;flex-direction:column;z-index:5}
+.side-brand{padding:0 8px 32px;border-bottom:1px solid #ffffff20}
+.side-brand h2{font-size:29px;font-weight:500;margin:10px 0 2px}
+.side-brand p{font-size:9px;letter-spacing:2px;color:#c5ad85;margin:0;text-transform:uppercase}
+.nav-label{font-size:9px;letter-spacing:2px;color:#9f988a;margin:27px 10px 12px}
+.nav-btn{width:100%;display:flex;align-items:center;gap:13px;padding:13px 12px;color:#c9c4b9;border:0;background:transparent;text-align:left;font-size:12px;margin:3px 0;border-radius:3px}
+.nav-btn:hover,.nav-btn.active{background:#ffffff12;color:#e2c798}
+.nav-icon{width:18px;text-align:center;font-size:15px}
+.side-bottom{margin-top:auto;border-top:1px solid #ffffff20;padding-top:18px;font-size:10px;color:#aaa397;line-height:1.8}
+.main{margin-left:255px;padding:36px 5%;max-width:1700px}
+.topbar{display:flex;justify-content:space-between;align-items:center;padding-bottom:25px;border-bottom:1px solid var(--line);gap:15px}
+.topbar h1{font-size:35px;font-weight:500;margin:0}
+.topbar p{font-size:11px;color:var(--muted);margin:5px 0 0}
+.top-right{display:flex;align-items:center;gap:12px}
+.avatar{width:37px;height:37px;display:grid;place-items:center;border:1px solid var(--gold);border-radius:50%;color:var(--gold);font-family:Georgia}
+.content{padding-top:28px}
+.page{display:none}
+.page.active{display:block}
+.welcome{background:var(--dark);color:#fffaf0;padding:36px 38px;position:relative;overflow:hidden;margin-bottom:24px}
+.welcome:after{content:'S';position:absolute;right:50px;top:-55px;font:240px Georgia;color:#ffffff09}
+.welcome .eyebrow{color:#d9bd8b}
+.welcome h2{font-size:42px;font-weight:400;margin:13px 0 8px}
+.welcome p{color:#c4bdae;font-size:12px;line-height:1.8;max-width:470px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:22px 0}
+.stat,.panel{background:var(--paper);border:1px solid var(--line);padding:23px}
+.stat span{font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase}
+.stat strong{display:block;font:42px 'Cormorant Garamond',serif;margin-top:10px}
+.panel{margin-bottom:20px}
+.panel-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:20px}
+.panel-heading h2,.section-title{font:30px 'Cormorant Garamond',serif;margin:0}
+.panel-heading p{font-size:11px;color:var(--muted);margin:5px 0}
+.upload-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.form-label{display:block;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin:13px 0 4px}
+textarea.field{min-height:125px;resize:vertical}
+.form-full{grid-column:1/-1}
+.content-list{display:grid;gap:10px}
+.content-item{display:flex;align-items:center;gap:15px;padding:15px 0;border-bottom:1px solid var(--line)}
+.thumb{width:62px;height:62px;background:#f1ede5;display:grid;place-items:center;flex-shrink:0;color:var(--gold);overflow:hidden}
+.thumb img{width:100%;height:100%;object-fit:cover}
+.item-info{flex:1;min-width:0}
+.item-info strong{font:21px 'Cormorant Garamond',serif;font-weight:600}
+.item-info p{font-size:10px;color:var(--muted);margin:4px 0}
+.delete-btn{background:transparent;border:1px solid var(--line);color:var(--red);padding:9px 11px;font-size:10px}
+.status-box{padding:19px;background:#f7f4ed;border:1px solid var(--line);margin-top:15px}
+.status-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--gold);margin-right:8px}
+.notice{font-size:11px;color:var(--muted);line-height:1.8;margin-top:15px}
+#toast{position:fixed;bottom:25px;right:25px;background:var(--dark);color:white;padding:15px 22px;font-size:12px;z-index:20;display:none;max-width:90%}
+.empty{padding:40px;text-align:center;color:var(--muted);font-size:12px}
+.mobile-head{display:none}
+@media(max-width:850px){
+ .sidebar{width:72px;padding:20px 9px}
+ .side-brand{text-align:center;padding:0 0 20px}
+ .side-brand h2{font-size:0}
+ .side-brand h2:after{content:'SS';font-size:20px}
+ .side-brand p,.nav-label,.nav-text,.side-bottom{display:none}
+ .nav-btn{justify-content:center;padding:14px 5px}
+ .nav-icon{font-size:18px}
+ .main{margin-left:72px;padding:25px 4%}
+ .topbar h1{font-size:29px}
+}
+@media(max-width:560px){
+ .main{padding:18px 14px;margin-left:62px}
+ .sidebar{width:62px}
+ .welcome{padding:25px 20px}
+ .welcome h2{font-size:33px}
+ .stats{grid-template-columns:1fr 1fr}
+ .stats .stat:last-child{grid-column:1/-1}
+ .upload-grid{grid-template-columns:1fr}
+ .form-full{grid-column:auto}
+ .topbar{align-items:flex-start}
+ .topbar h1{font-size:25px}
+ .topbar p{font-size:10px}
+ .login-card{padding:32px 22px}
+}
+</style>
+</head>
+
+<body>
+
+<section id="loginScreen">
+ <div class="login-card">
+  <div class="brand-mark">S</div>
+  <div class="eyebrow">Private Access · 001</div>
+  <h1 class="serif">SS KADHAL<br>KADHAI</h1>
+  <p>A private space to curate and manage your memories.</p>
+  <form id="loginForm">
+   <input class="field" id="email" type="email" placeholder="Email address" required>
+   <input class="field" id="password" type="password" placeholder="Password" required>
+   <button class="btn" style="width:100%;margin-top:12px" type="submit">Enter Private Space</button>
+  </form>
+  <p id="loginMessage"></p>
+  <div class="eyebrow" style="margin-top:28px">A story kept close to the heart</div>
+ </div>
+</section>
+
+<div id="app">
+<aside class="sidebar">
+ <div class="side-brand">
+  <div class="eyebrow">Private Atelier</div>
+  <h2 class="serif">SS KADHAL KADHAI</h2>
+  <p>Curating forever</p>
+ </div>
+
+ <div class="nav-label">WORKSPACE</div>
+ <button class="nav-btn active" data-page="overview"><span class="nav-icon">⌂</span><span class="nav-text">Overview</span></button>
+ <button class="nav-btn" data-page="upload"><span class="nav-icon">＋</span><span class="nav-text">Add Content</span></button>
+ <button class="nav-btn" data-page="library"><span class="nav-icon">▤</span><span class="nav-text">Content Library</span></button>
+
+ <div class="nav-label">CONNECTIVITY</div>
+ <button class="nav-btn" data-page="device"><span class="nav-icon">⌁</span><span class="nav-text">Her Device</span></button>
+ <button class="nav-btn" data-page="sync"><span class="nav-icon">↗</span><span class="nav-text">Sync Centre</span></button>
+
+ <div class="side-bottom">
+  SS KADHAL KADHAI<br>
+  PRIVATE MANAGEMENT SYSTEM<br>
+  VERSION 01.0
+ </div>
+</aside>
+
+<main class="main">
+ <header class="topbar">
+  <div>
+   <div class="eyebrow">The personal collection</div>
+   <h1 class="serif" id="pageHeading">Overview</h1>
+   <p>Private content management · Secure workspace</p>
+  </div>
+  <div class="top-right">
+   <div class="avatar">S</div>
+  </div>
+ </header>
+
+ <div class="content">
+
+ <section class="page active" id="overview">
+  <div class="welcome">
+   <div class="eyebrow">Welcome to your private atelier</div>
+   <h2 class="serif">Every memory has<br>a place here.</h2>
+   <p>Manage the photographs, stories and personal words that will be delivered to her device's Hidden Zone.</p>
+   <button class="btn" id="goUpload">Add New Content &nbsp; →</button>
+  </div>
+  <div class="stats">
+   <div class="stat"><span>Total content</span><strong id="totalCount">—</strong></div>
+   <div class="stat"><span>Photographs</span><strong id="photoCount">—</strong></div>
+   <div class="stat"><span>Device registered</span><strong id="deviceCount">—</strong></div>
+  </div>
+  <div class="panel">
+   <div class="panel-heading">
+    <div><h2>Recently added</h2><p>Your latest curated memories</p></div>
+    <button class="btn btn-outline" data-goto="library">View Library</button>
+   </div>
+   <div id="recentList" class="content-list"><div class="empty">Loading your collection...</div></div>
+  </div>
+ </section>
+
+ <section class="page" id="upload">
+  <div class="panel">
+   <div class="panel-heading">
+    <div><h2>Add to her collection</h2><p>New content will be stored privately for her ESP32 device.</p></div>
+   </div>
+   <form id="uploadForm">
+    <div class="upload-grid">
+     <div>
+      <label class="form-label" for="contentType">Collection type</label>
+      <select class="field" id="contentType">
+       <option value="photo">Photograph</option>
+       <option value="love_story">Love Story Chapter</option>
+       <option value="love_line">Love & Hope Line</option>
+       <option value="letter">Personal Letter</option>
+       <option value="special_memory">Special Memory</option>
+      </select>
+     </div>
+     <div>
+      <label class="form-label" for="title">Title / Caption</label>
+      <input class="field" id="title" maxlength="120" placeholder="Give this memory a title" required>
+     </div>
+     <div class="form-full" id="photoField">
+      <label class="form-label" for="photo">Choose photograph</label>
+      <input class="field" id="photo" type="file" accept="image/jpeg,image/png,image/webp">
+      <p class="notice">JPEG, PNG or WebP · Maximum 5 MB per image in this prototype.</p>
+     </div>
+     <div class="form-full">
+      <label class="form-label" for="body">Your words / Description</label>
+      <textarea class="field" id="body" maxlength="10000" placeholder="Write your story, letter, memory or personal message..."></textarea>
+     </div>
+     <div class="form-full">
+      <button class="btn" id="uploadButton" type="submit">Save to Private Collection &nbsp; →</button>
+      <p class="notice">Your content is saved in private cloud storage. Automatic ESP32 delivery will be connected in the next development stage.</p>
+     </div>
+    </div>
+   </form>
+  </div>
+ </section>
+
+ <section class="page" id="library">
+  <div class="panel">
+   <div class="panel-heading">
+    <div><h2>Content Library</h2><p>Manage your private collection</p></div>
+    <button class="btn btn-outline" id="refreshButton">Refresh</button>
+   </div>
+   <div id="libraryList" class="content-list"><div class="empty">Loading...</div></div>
+  </div>
+ </section>
+
+ <section class="page" id="device">
+  <div class="panel">
+   <div class="eyebrow">Hardware · Destination</div>
+   <h2 class="section-title">Her ESP32 Device</h2>
+   <div class="status-box">
+    <div><span class="status-dot"></span><strong>Device registered</strong></div>
+    <p class="notice">Device name: Her ESP32 Device<br>Device code: HER_ESP32_001</p>
+   </div>
+   <p class="notice">Live online status is not yet connected to the backend. We will add authenticated device heartbeats and independent Wi-Fi connectivity in the next stage.</p>
+  </div>
+ </section>
+
+ <section class="page" id="sync">
+  <div class="panel">
+   <div class="eyebrow">Delivery management</div>
+   <h2 class="section-title">Sync Centre</h2>
+   <div class="status-box">
+    <span class="status-dot"></span><strong>Cloud storage configured</strong>
+    <p class="notice">New content can be saved securely. MQTT update notifications and ESP32 HTTPS downloads are the next integration stage.</p>
+   </div>
+   <p class="notice">Automatic sync is not active yet. We will enable it only after device authentication, secure downloads and offline recovery are tested.</p>
+  </div>
+ </section>
+
+ </div>
+</main>
+</div>
+
+<div id="toast"></div>
+
+<script>
+let db = null;
+let deviceId = null;
+let allContent = [];
+
+const $ = id => document.getElementById(id);
+
+function toast(message){
+ const el=$('toast');
+ el.textContent=message;
+ el.style.display='block';
+ clearTimeout(window.toastTimer);
+ window.toastTimer=setTimeout(()=>el.style.display='none',3500);
+}
+
+function showApp(){
+ $('loginScreen').style.display='none';
+ $('app').style.display='block';
+ loadDashboard();
+}
+
+function showLogin(){
+ $('app').style.display='none';
+ $('loginScreen').style.display='grid';
+}
+
+function navigate(page){
+ document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+ $(page).classList.add('active');
+ document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.page===page));
+ const headings={
+  overview:'Overview',
+  upload:'Add Content',
+  library:'Content Library',
+  device:'Her Device',
+  sync:'Sync Centre'
+ };
+ $('pageHeading').textContent=headings[page];
+ if(page==='library') loadContent();
+}
+
+document.querySelectorAll('.nav-btn').forEach(btn=>{
+ btn.addEventListener('click',()=>navigate(btn.dataset.page));
+});
+document.querySelectorAll('[data-goto]').forEach(btn=>{
+ btn.addEventListener('click',()=>navigate(btn.dataset.goto));
+});
+$('goUpload').addEventListener('click',()=>navigate('upload'));
+
+function escapeText(value){
+ return String(value??'');
+}
+
+async function loadDevice(){
+ const {data,error}=await db.from('devices')
+  .select('id,device_name,device_code')
+  .eq('device_code','HER_ESP32_001')
+  .single();
+ if(error) throw error;
+ deviceId=data.id;
+ $('deviceCount').textContent='01';
+}
+
+async function loadDashboard(){
+ try{
+  await loadDevice();
+  await loadContent();
+  $('totalCount').textContent=allContent.length;
+  $('photoCount').textContent=allContent.filter(x=>x.content_type==='photo').length;
+  renderItems(allContent.slice(0,4),'recentList',false);
+ }catch(error){
+  toast('Could not load dashboard: '+error.message);
+ }
+}
+
+async function loadContent(){
+ const {data,error}=await db.from('content_items')
+  .select('id,title,body,content_type,storage_path,created_at,version')
+  .eq('is_deleted',false)
+  .order('created_at',{ascending:false});
+ if(error) throw error;
+ allContent=data||[];
+ $('totalCount').textContent=allContent.length;
+ $('photoCount').textContent=allContent.filter(x=>x.content_type==='photo').length;
+ renderItems(allContent,'libraryList',true);
+}
+
+function typeLabel(type){
+ return ({
+  photo:'Photograph',
+  love_story:'Love Story',
+  love_line:'Love & Hope',
+  letter:'Personal Letter',
+  special_memory:'Special Memory'
+ })[type]||type;
+}
+
+async function renderItems(items,target,allowDelete){
+ const list=$(target);
+ list.replaceChildren();
+ if(!items.length){
+  list.innerHTML='<div class="empty">No content has been added yet.</div>';
+  return;
+ }
+ for(const item of items){
+  const row=document.createElement('div');
+  row.className='content-item';
+  const thumb=document.createElement('div');
+  thumb.className='thumb';
+  thumb.textContent=item.content_type==='photo'?'✧':'✦';
+  if(item.storage_path){
+   const {data}=await db.storage.from('ss-private-content')
+    .createSignedUrl(item.storage_path,300);
+   if(data?.signedUrl){
+    const img=document.createElement('img');
+    img.src=data.signedUrl;
+    img.alt='Private photo';
+    thumb.replaceChildren(img);
+   }
+  }
+  const info=document.createElement('div');
+  info.className='item-info';
+  const title=document.createElement('strong');
+  title.textContent=item.title||'Untitled';
+  const meta=document.createElement('p');
+  meta.textContent=typeLabel(item.content_type)+' · Version '+item.version;
+  info.append(title,meta);
+  row.append(thumb,info);
+
+  if(allowDelete){
+   const del=document.createElement('button');
+   del.className='delete-btn';
+   del.textContent='Remove';
+   del.addEventListener('click',()=>removeItem(item));
+   row.append(del);
+  }
+  list.append(row);
+ }
+}
+
+async function removeItem(item){
+ if(!confirm('Remove this content from the active collection?')) return;
+ const {error}=await db.from('content_items')
+  .update({is_deleted:true})
+  .eq('id',item.id);
+ if(error){toast(error.message);return;}
+ toast('Content removed from active collection.');
+ await loadDashboard();
+}
+
+$('contentType').addEventListener('change',()=>{
+ const isPhoto=$('contentType').value==='photo';
+ $('photoField').style.display=isPhoto?'block':'none';
+ $('photo').required=isPhoto;
+});
+$('photo').required=true;
+
+$('uploadForm').addEventListener('submit',async event=>{
+ event.preventDefault();
+ const button=$('uploadButton');
+ button.disabled=true;
+ try{
+  if(!deviceId) await loadDevice();
+  const type=$('contentType').value;
+  const title=$('title').value.trim();
+  const body=$('body').value.trim();
+  const file=$('photo').files[0];
+
+  if(type==='photo'&&!file) throw new Error('Please choose a photograph.');
+  if(file&&file.size>5*1024*1024) throw new Error('Image must be smaller than 5 MB.');
+  if(file&&!['image/jpeg','image/png','image/webp'].includes(file.type))
+   throw new Error('Only JPEG, PNG and WebP images are supported.');
+
+  let path=null;
+  if(type==='photo'){
+   path='her-device/'+crypto.randomUUID()+'.'+file.name.split('.').pop().toLowerCase();
+   const {error}=await db.storage.from('ss-private-content').upload(path,file,{
+    contentType:file.type,
+    upsert:false
+   });
+   if(error) throw error;
+  }
+
+  const {error}=await db.from('content_items').insert({
+   device_id:deviceId,
+   content_type:type,
+   title:title,
+   body:body||null,
+   storage_path:path
+  });
+
+  if(error){
+   if(path) await db.storage.from('ss-private-content').remove([path]);
+   throw error;
+  }
+
+  $('uploadForm').reset();
+  $('photoField').style.display='block';
+  $('photo').required=true;
+  toast('Saved successfully to private cloud storage.');
+  await loadDashboard();
+  navigate('library');
+
+ }catch(error){
+  toast('Upload failed: '+error.message);
+ }finally{
+  button.disabled=false;
+ }
+});
+
+$('refreshButton').addEventListener('click',async()=>{
+ try{await loadContent();toast('Library refreshed.');}
+ catch(error){toast(error.message);}
+});
+
+$('loginForm').addEventListener('submit',async event=>{
+ event.preventDefault();
+ $('loginMessage').textContent='Authenticating...';
+ const {error}=await db.auth.signInWithPassword({
+  email:$('email').value.trim(),
+  password:$('password').value
+ });
+ if(error){
+  $('loginMessage').textContent=error.message;
+  return;
+ }
+ $('loginMessage').textContent='';
+ showApp();
+});
+
+async function initialize(){
+ const {data,error}=await db.auth.getSession();
+ if(error){$('loginMessage').textContent=error.message;return;}
+ if(data.session) showApp();
+ else showLogin();
+
+ db.auth.onAuthStateChange((event,session)=>{
+  if(session) showApp();
+  else showLogin();
+ });
+}
+
+function waitForSupabase(){
+ if(window.db){
+  db=window.db;
+  initialize();
+ }else{
+  window.addEventListener('supabase-ready',waitForSupabase,{once:true});
+ }
+}
+waitForSupabase();
+</script>
+</body>
+</html>
