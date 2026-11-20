@@ -294,6 +294,55 @@ let allContent = [];
 
 const $ = id => document.getElementById(id);
 
+async function convertPhotoForEPaper(file) {
+    const image = await createImageBitmap(file);
+
+    const canvas = document.createElement('canvas');
+    canvas.width = 296;
+    canvas.height = 128;
+
+    const ctx = canvas.getContext('2d');
+
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(0, 0, 296, 128);
+
+    const scale = Math.min(
+        296 / image.width,
+        128 / image.height
+    );
+
+    const width = image.width * scale;
+    const height = image.height * scale;
+
+    const x = (296 - width) / 2;
+    const y = (128 - height) / 2;
+
+    ctx.drawImage(image, x, y, width, height);
+
+    const pixels = ctx.getImageData(0, 0, 296, 128);
+    const output = new Uint8Array(296 * 128 / 8);
+
+    for (let i = 0; i < 296 * 128; i++) {
+        const r = pixels.data[i * 4];
+        const g = pixels.data[i * 4 + 1];
+        const b = pixels.data[i * 4 + 2];
+
+        const gray = (r + g + b) / 3;
+
+        if (gray < 128) {
+            output[Math.floor(i / 8)] |=
+                (0x80 >> (i % 8));
+        }
+    }
+
+    image.close();
+
+    return new Blob([output], {
+        type: 'application/octet-stream'
+    });
+}
+
+  
 function toast(message){
  const el=$('toast');
  el.textContent=message;
@@ -460,28 +509,81 @@ $('uploadForm').addEventListener('submit',async event=>{
   if(file&&!['image/jpeg','image/png','image/webp'].includes(file.type))
    throw new Error('Only JPEG, PNG and WebP images are supported.');
 
-  let path=null;
-  if(type==='photo'){
-   path='her-device/'+crypto.randomUUID()+'.'+file.name.split('.').pop().toLowerCase();
-   const {error}=await db.storage.from('ss-private-content').upload(path,file,{
-    contentType:file.type,
-    upsert:false
-   });
-   if(error) throw error;
-  }
+  
+let path = null;
+let epaperPath = null;
 
-  const {error}=await db.from('content_items').insert({
-   device_id:deviceId,
-   content_type:type,
-   title:title,
-   body:body||null,
-   storage_path:path
-  });
+if (type === 'photo') {
+    const fileId = crypto.randomUUID();
+    const extension = file.name.split('.').pop().toLowerCase();
 
-  if(error){
-   if(path) await db.storage.from('ss-private-content').remove([path]);
-   throw error;
-  }
+    // Upload original image
+    path = `her-device/${fileId}.${extension}`;
+
+    const { error: photoError } = await db.storage
+        .from('ss-private-content')
+        .upload(path, file, {
+            contentType: file.type,
+            upsert: false
+        });
+
+    if (photoError) throw photoError;
+
+    try {
+        // Convert original image to E-Paper bitmap
+        const epaperBlob = await convertPhotoForEPaper(file);
+
+        // Upload bitmap
+        epaperPath = `her-device/${fileId}.bin`;
+
+        const { error: bitmapError } = await db.storage
+            .from('ss-private-content')
+            .upload(epaperPath, epaperBlob, {
+                contentType: 'application/octet-stream',
+                upsert: false
+            });
+
+        if (bitmapError) throw bitmapError;
+
+    } catch (error) {
+        // If bitmap conversion/upload fails, remove any uploaded files.
+        const cleanupPaths = [path, epaperPath].filter(Boolean);
+        if (cleanupPaths.length) {
+            await db.storage
+                .from('ss-private-content')
+                .remove(cleanupPaths);
+        }
+        throw error;
+    }
+}
+
+// Save both paths in the existing content record
+const { error } = await db.from('content_items').insert({
+    device_id: deviceId,
+    content_type: type,
+    title: title,
+    body: body || null,
+    storage_path: path,
+    metadata: epaperPath ? {
+        epaper_storage_path: epaperPath,
+        epaper_width: 296,
+        epaper_height: 128,
+        epaper_format: '1bpp'
+    } : {}
+});
+
+if (error) {
+    const paths = [path, epaperPath].filter(Boolean);
+
+    if (paths.length) {
+        await db.storage
+            .from('ss-private-content')
+            .remove(paths);
+    }
+
+    throw error;
+}
+
 
   $('uploadForm').reset();
   $('photoField').style.display='block';
